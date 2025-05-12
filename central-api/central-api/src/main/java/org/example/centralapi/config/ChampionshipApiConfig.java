@@ -8,21 +8,13 @@ import java.util.List;
 
 @Configuration
 @ConfigurationProperties(prefix = "championship")
+@Data
 public class ChampionshipApiConfig {
     private List<ApiConfig> apis;
 
-    public List<ApiConfig> getApis() {
-        return apis;
-    }
-
-    public void setApis(List<ApiConfig> apis) {
-        this.apis = apis;
-    }
-
+    @Data
     public static class ApiConfig {
         private String name;
-        private String url;
-        private String key;
 
         public String getName() {
             return name;
@@ -47,5 +39,8 @@ public class ChampionshipApiConfig {
         public void setKey(String key) {
             this.key = key;
         }
+
+        private String url;
+        private String key;
     }
 }

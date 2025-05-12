@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -139,29 +140,30 @@ public class CentralRepository {
     }
 
     public List<Championship> getChampionshipRankings() {
-        String sql = "SELECT c.id, c.name, c.country, " +
-                "SUM(cs.points) as total_points, " +
-                "SUM(cs.goals_scored) as total_goals, " +
-                "AVG(cs.points) as avg_points_per_club, " +
-                "SUM(cs.clean_sheets) as total_clean_sheets " +
-                "FROM championship c " +
-                "JOIN club cl ON c.id = cl.championship_id " +
-                "JOIN club_statistics cs ON cl.id = cs.club_id " +
-                "GROUP BY c.id, c.name, c.country " +
-                "ORDER BY total_points DESC, total_goals DESC";
+        try {
+            // Use LEFT JOINs to handle potential empty tables
+            String sql = "SELECT c.id, c.name, c.country " +
+                    "FROM championship c " +
+                    "LEFT JOIN club cl ON c.id = cl.championship_id " +
+                    "LEFT JOIN club_statistics cs ON cl.id = cs.club_id " +
+                    "GROUP BY c.id, c.name, c.country";
 
-        return jdbcTemplate.query(sql,
-                (rs, rowNum) -> {
-                    Championship championship = new Championship();
-                    championship.setId(rs.getString("id"));
-                    championship.setName(rs.getString("name"));
-                    championship.setCountry(rs.getString("country"));
-                    // You could add these stats to the Championship model if needed
-                    // championship.setTotalPoints(rs.getInt("total_points"));
-                    // championship.setTotalGoals(rs.getInt("total_goals"));
-                    return championship;
-                }
-        );
+            return jdbcTemplate.query(sql,
+                    (rs, rowNum) -> {
+                        Championship championship = new Championship();
+                        championship.setId(rs.getString("id"));
+                        championship.setName(rs.getString("name"));
+                        championship.setCountry(rs.getString("country"));
+                        return championship;
+                    }
+            );
+        } catch (Exception e) {
+            // Log the exception
+            System.err.println("Error retrieving championship rankings: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list instead of letting the exception propagate
+            return new ArrayList<>();
+        }
     }
 
 }

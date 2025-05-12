@@ -25,10 +25,19 @@ public class CentralController {
     }
 
     @PostMapping("/synchronization")
-    public ResponseEntity<String> synchronizeData() {
+    public ResponseEntity<String> synchronizeData(
+            @RequestParam(required = false) String competition) {
         try {
-            synchronizationService.synchronizeData();
-            return new ResponseEntity<>("Synchronisation réussie", HttpStatus.OK);
+            if (competition != null) {
+                synchronizationService.synchronizeChampionship(competition);
+                return new ResponseEntity<>("Synchronisation réussie pour: " + competition, HttpStatus.OK);
+            } else {
+                synchronizationService.synchronizeAllChampionships();
+                return new ResponseEntity<>("Synchronisation complète réussie", HttpStatus.OK);
+            }
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>("Championnat non configuré: " + e.getMessage(),
+                    HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Erreur lors de la synchronisation: " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -36,27 +45,12 @@ public class CentralController {
     }
 
     @GetMapping("/bestPlayers")
-    public ResponseEntity<?> getBestPlayers(
+    public ResponseEntity<List<Player>> getBestPlayers(
             @RequestParam(defaultValue = "10") int top,
             @RequestParam(defaultValue = "total") String playingTimeUnit) {
 
-        try {
-            if (top <= 0) {
-                return new ResponseEntity<>("Le paramètre 'top' doit être un nombre positif",
-                        HttpStatus.BAD_REQUEST);
-            }
-
-            if (!playingTimeUnit.equals("total") && !playingTimeUnit.equals("efficiency")) {
-                return new ResponseEntity<>("Le paramètre 'playingTimeUnit' doit être 'total' ou 'efficiency'",
-                        HttpStatus.BAD_REQUEST);
-            }
-
-            List<Player> players = centralRepository.getBestPlayers(top, playingTimeUnit);
-            return new ResponseEntity<>(players, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Erreur lors de la récupération des meilleurs joueurs: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        List<Player> players = centralRepository.getBestPlayers(top, playingTimeUnit);
+        return new ResponseEntity<>(players, HttpStatus.OK);
     }
 
     @GetMapping("/championshipRankings")
