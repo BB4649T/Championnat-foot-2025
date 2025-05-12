@@ -1,0 +1,482 @@
+openapi: 3.0.1
+info:
+  title: API de Gestion de la Bundesliga
+  description: API pour gérer le championnat allemand de Bundesliga (clubs, joueurs, matchs et statistiques)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Serveur local de développement
+tags:
+  - name: clubs
+    description: Opérations sur les clubs de Bundesliga
+  - name: joueurs
+    description: Opérations sur les joueurs
+  - name: matchs
+    description: Opérations sur les matchs
+  - name: saisons
+    description: Opérations sur les saisons
+  - name: statistiques
+    description: Statistiques de la Bundesliga
+
+paths:
+  # Clubs
+  /api/clubs:
+    get:
+      tags: [clubs]
+      summary: Récupère tous les clubs de Bundesliga
+      responses:
+        '200':
+          description: Liste des clubs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Club'
+    post:
+      tags: [clubs]
+      summary: Crée un nouveau club en Bundesliga
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Club'
+      responses:
+        '201':
+          description: Club créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+
+  /api/clubs/{id}:
+    get:
+      tags: [clubs]
+      summary: Récupère un club par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Club récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        '404':
+          description: Club non trouvé
+
+  /api/clubs/{id}/joueurs:
+    get:
+      tags: [clubs]
+      summary: Récupère les joueurs d'un club
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des joueurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Joueur'
+
+  # Joueurs
+  /api/joueurs:
+    get:
+      tags: [joueurs]
+      summary: Récupère tous les joueurs de Bundesliga avec filtres
+      parameters:
+        - name: clubId
+          in: query
+          schema:
+            type: integer
+        - name: nom
+          in: query
+          schema:
+            type: string
+        - name: poste
+          in: query
+          schema:
+            type: string
+            enum: [Torwart, Verteidiger, Mittelfeld, Stürmer]
+      responses:
+        '200':
+          description: Liste des joueurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Joueur'
+
+  /api/joueurs/{id}:
+    get:
+      tags: [joueurs]
+      summary: Récupère un joueur par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Joueur récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joueur'
+        '404':
+          description: Joueur non trouvé
+
+  # Saisons
+  /api/saisons:
+    get:
+      tags: [saisons]
+      summary: Récupère toutes les saisons de Bundesliga
+      responses:
+        '200':
+          description: Liste des saisons récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Saison'
+
+  /api/saisons/actuelle:
+    get:
+      tags: [saisons]
+      summary: Récupère la saison actuelle de Bundesliga
+      responses:
+        '200':
+          description: Saison actuelle récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saison'
+
+  # Matchs
+  /api/matchs:
+    get:
+      tags: [matchs]
+      summary: Récupère tous les matchs de la saison actuelle
+      parameters:
+        - name: estJoue
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Liste des matchs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+
+  /api/matchs/{id}:
+    get:
+      tags: [matchs]
+      summary: Récupère un match par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Match récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+        '404':
+          description: Match non trouvé
+
+  /api/matchs/{id}/resultat:
+    put:
+      tags: [matchs]
+      summary: Enregistre le résultat d'un match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResultatMatch'
+      responses:
+        '200':
+          description: Résultat enregistré avec succès
+        '400':
+          description: Données invalides
+        '404':
+          description: Match non trouvé
+
+  # Statistiques
+  /api/statistiques/clubs:
+    get:
+      tags: [statistiques]
+      summary: Récupère les statistiques des clubs pour la saison actuelle
+      responses:
+        '200':
+          description: Statistiques des clubs récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatistiquesClub'
+
+  /api/statistiques/joueurs/{id}:
+    get:
+      tags: [statistiques]
+      summary: Récupère les statistiques d'un joueur pour la saison actuelle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Statistiques du joueur récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistiquesJoueur'
+        '404':
+          description: Joueur non trouvé
+
+  /api/classement:
+    get:
+      tags: [statistiques]
+      summary: Récupère le classement actuel de Bundesliga
+      responses:
+        '200':
+          description: Classement récupéré avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassementClub'
+
+components:
+  schemas:
+    Club:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Bayern Munich"
+        acronyme:
+          type: string
+          example: "FCB"
+        anneeCreation:
+          type: integer
+          example: 1900
+        nomStade:
+          type: string
+          example: "Allianz Arena"
+        entraineur:
+          $ref: '#/components/schemas/Entraineur'
+
+    Entraineur:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Thomas Tuchel"
+        nationalite:
+          type: string
+          example: "Allemande"
+
+    Joueur:
+      allOf:
+        - $ref: '#/components/schemas/JoueurInput'
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+    JoueurInput:
+      type: object
+      required: [ nom, numero, poste, nationalite, age, clubId ]
+      properties:
+        nom:
+          type: string
+          example: "Harry Kane"
+        numero:
+          type: integer
+          example: 9
+        poste:
+          type: string
+          enum: [ Torwart, Verteidiger, Mittelfeld, Stürmer ]
+        nationalite:
+          type: string
+          example: "Anglais"
+        age:
+          type: integer
+          example: 30
+        clubId:
+          type: integer
+          example: 1
+
+    Saison:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "2023-2024"
+        estTerminee:
+          type: boolean
+          example: false
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        clubDomicileId:
+          type: integer
+          example: 1
+        clubExterieurId:
+          type: integer
+          example: 2
+        stade:
+          type: string
+          example: "Allianz Arena"
+        dateHeure:
+          type: string
+          format: date-time
+          example: "2023-08-18T20:30:00"
+        scoreDomicile:
+          type: integer
+          example: 4
+        scoreExterieur:
+          type: integer
+          example: 0
+        estJoue:
+          type: boolean
+          example: true
+
+    ResultatMatch:
+      type: object
+      properties:
+        scoreDomicile:
+          type: integer
+          example: 2
+        scoreExterieur:
+          type: integer
+          example: 2
+        buteursDomicile:
+          type: array
+          items:
+            type: integer
+          example: [ 9, 25 ]
+        buteursExterieur:
+          type: array
+          items:
+            type: integer
+          example: [ 7, 11 ]
+
+    StatistiquesClub:
+      type: object
+      properties:
+        clubId:
+          type: integer
+          example: 1
+        points:
+          type: integer
+          example: 70
+        butsMarques:
+          type: integer
+          example: 92
+        butsEncaisses:
+          type: integer
+          example: 32
+        differenceButs:
+          type: integer
+          example: 60
+        cleanSheets:
+          type: integer
+          example: 12
+        matchsJoues:
+          type: integer
+          example: 34
+        victoires:
+          type: integer
+          example: 21
+        nuls:
+          type: integer
+          example: 7
+        defaites:
+          type: integer
+          example: 6
+
+    StatistiquesJoueur:
+      type: object
+      properties:
+        joueurId:
+          type: integer
+          example: 1
+        butsMarques:
+          type: integer
+          example: 36
+        passesDecisives:
+          type: integer
+          example: 8
+        dureeJeu:
+          type: integer
+          example: 2800
+          description: "Temps de jeu en minutes"
+        matchsJoues:
+          type: integer
+          example: 32
+
+    ClassementClub:
+      type: object
+      properties:
+        rang:
+          type: integer
+          example: 1
+        clubId:
+          type: integer
+          example: 1
+        points:
+          type: integer
+          example: 70
+        differenceButs:
+          type: integer
+          example: 60
+        matchsJoues:
+          type: integer
+          example: 34

@@ -1,0 +1,468 @@
+openapi: 3.0.1
+info:
+  title: API de Gestion de la Ligue 1
+  description: API pour gérer le championnat français de Ligue 1 (clubs, joueurs, matchs et statistiques)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Serveur local de développement
+tags:
+  - name: clubs
+    description: Opérations sur les clubs de Ligue 1
+  - name: joueurs
+    description: Opérations sur les joueurs
+  - name: matchs
+    description: Opérations sur les matchs
+  - name: saisons
+    description: Opérations sur les saisons
+  - name: statistiques
+    description: Statistiques de la Ligue 1
+
+paths:
+  # Clubs
+  /api/clubs:
+    get:
+      tags: [clubs]
+      summary: Récupère tous les clubs de Ligue 1
+      responses:
+        '200':
+          description: Liste des clubs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Club'
+    post:
+      tags: [clubs]
+      summary: Crée un nouveau club en Ligue 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Club'
+      responses:
+        '201':
+          description: Club créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+
+  /api/clubs/{id}:
+    get:
+      tags: [clubs]
+      summary: Récupère un club par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Club récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        '404':
+          description: Club non trouvé
+
+  /api/clubs/{id}/joueurs:
+    get:
+      tags: [clubs]
+      summary: Récupère les joueurs d'un club
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liste des joueurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Joueur'
+
+  # Joueurs
+  /api/joueurs:
+    get:
+      tags: [joueurs]
+      summary: Récupère tous les joueurs de Ligue 1 avec filtres
+      parameters:
+        - name: clubId
+          in: query
+          schema:
+            type: integer
+        - name: nom
+          in: query
+          schema:
+            type: string
+        - name: poste
+          in: query
+          schema:
+            type: string
+            enum: [Gardien, Défenseur, Milieu, Attaquant]
+      responses:
+        '200':
+          description: Liste des joueurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Joueur'
+
+  /api/joueurs/{id}:
+    get:
+      tags: [joueurs]
+      summary: Récupère un joueur par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Joueur récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Joueur'
+        '404':
+          description: Joueur non trouvé
+
+  # Saisons
+  /api/saisons:
+    get:
+      tags: [saisons]
+      summary: Récupère toutes les saisons de Ligue 1
+      responses:
+        '200':
+          description: Liste des saisons récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Saison'
+
+  /api/saisons/actuelle:
+    get:
+      tags: [saisons]
+      summary: Récupère la saison actuelle de Ligue 1
+      responses:
+        '200':
+          description: Saison actuelle récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saison'
+
+  # Matchs
+  /api/matchs:
+    get:
+      tags: [matchs]
+      summary: Récupère tous les matchs de la saison actuelle
+      parameters:
+        - name: estJoue
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Liste des matchs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+
+  /api/matchs/{id}:
+    get:
+      tags: [matchs]
+      summary: Récupère un match par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Match récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+        '404':
+          description: Match non trouvé
+
+  /api/matchs/{id}/resultat:
+    put:
+      tags: [matchs]
+      summary: Enregistre le résultat d'un match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResultatMatch'
+      responses:
+        '200':
+          description: Résultat enregistré avec succès
+        '400':
+          description: Données invalides
+        '404':
+          description: Match non trouvé
+
+  # Statistiques
+  /api/statistiques/clubs:
+    get:
+      tags: [statistiques]
+      summary: Récupère les statistiques des clubs pour la saison actuelle
+      responses:
+        '200':
+          description: Statistiques des clubs récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatistiquesClub'
+
+  /api/statistiques/joueurs/{id}:
+    get:
+      tags: [statistiques]
+      summary: Récupère les statistiques d'un joueur pour la saison actuelle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Statistiques du joueur récupérées avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatistiquesJoueur'
+        '404':
+          description: Joueur non trouvé
+
+  /api/classement:
+    get:
+      tags: [statistiques]
+      summary: Récupère le classement actuel de Ligue 1
+      responses:
+        '200':
+          description: Classement récupéré avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassementClub'
+
+components:
+  schemas:
+    Club:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Paris Saint-Germain"
+        acronyme:
+          type: string
+          example: "PSG"
+        anneeCreation:
+          type: integer
+          example: 1970
+        nomStade:
+          type: string
+          example: "Parc des Princes"
+        entraineur:
+          $ref: '#/components/schemas/Entraineur'
+
+    Entraineur:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Christophe Galtier"
+        nationalite:
+          type: string
+          example: "Française"
+
+    Joueur:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "Lionel Messi"
+        numero:
+          type: integer
+          example: 30
+        poste:
+          type: string
+          example: "Attaquant"
+          enum: ["Gardien", "Défenseur", "Milieu", "Attaquant"]
+        nationalite:
+          type: string
+          example: "Argentine"
+        age:
+          type: integer
+          example: 35
+        clubId:
+          type: integer
+          example: 1
+
+    Saison:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nom:
+          type: string
+          example: "2022-2023"
+        estTerminee:
+          type: boolean
+          example: false
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        clubDomicile:
+          $ref: '#/components/schemas/Club'
+        clubExterieur:
+          $ref: '#/components/schemas/Club'
+        stade:
+          type: string
+          example: "Parc des Princes"
+        dateHeure:
+          type: string
+          format: date-time
+          example: "2023-02-26T20:45:00"
+        scoreDomicile:
+          type: integer
+          example: 3
+        scoreExterieur:
+          type: integer
+          example: 0
+        estJoue:
+          type: boolean
+          example: true
+
+    ResultatMatch:
+      type: object
+      properties:
+        scoreDomicile:
+          type: integer
+          example: 2
+        scoreExterieur:
+          type: integer
+          example: 1
+        buteursDomicile:
+          type: array
+          items:
+            type: integer
+            description: IDs des joueurs ayant marqué
+          example: [2, 3]
+        buteursExterieur:
+          type: array
+          items:
+            type: integer
+            description: IDs des joueurs ayant marqué
+          example: [7]
+
+    StatistiquesClub:
+      type: object
+      properties:
+        club:
+          $ref: '#/components/schemas/Club'
+        points:
+          type: integer
+          example: 25
+        butsMarques:
+          type: integer
+          example: 45
+        butsEncaisses:
+          type: integer
+          example: 10
+        differenceButs:
+          type: integer
+          example: 35
+        cleanSheets:
+          type: integer
+          example: 8
+        matchsJoues:
+          type: integer
+          example: 15
+        victoires:
+          type: integer
+          example: 8
+        nuls:
+          type: integer
+          example: 1
+        defaites:
+          type: integer
+          example: 6
+
+    StatistiquesJoueur:
+      type: object
+      properties:
+        joueur:
+          $ref: '#/components/schemas/Joueur'
+        butsMarques:
+          type: integer
+          example: 15
+        dureeJeu:
+          type: integer
+          example: 1800
+          description: Temps de jeu en minutes
+        matchsJoues:
+          type: integer
+          example: 20
+
+    ClassementClub:
+      type: object
+      properties:
+        rang:
+          type: integer
+          example: 1
+        club:
+          $ref: '#/components/schemas/Club'
+        points:
+          type: integer
+          example: 25
+        differenceButs:
+          type: integer
+          example: 35
